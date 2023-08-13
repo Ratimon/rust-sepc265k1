@@ -1,54 +1,47 @@
 use num_bigint::BigUint;
-use num_traits::{One, Zero};
-use num_traits::Num;
-use std::str::FromStr;
 
-fn is_on_secp256k1_curve(n: (BigUint, BigUint)) -> bool {
-    // secp256k1 parameters
+use crate::elliptic_curve::{EllipticCurve,Point};
 
-    let p: BigUint = BigUint::from_str_radix("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 16).unwrap();
-    let a: BigUint = BigUint::zero();
-    let b: BigUint = BigUint::from(7u64);
-
-    // Calculate y^2 (mod p)
-    let y_squared: BigUint = (&n.1 * &n.1) % &p;
-
-    // Calculate x^3 + 7 (mod p)
-    let x_cubed_plus_7: BigUint = (&n.0 * &n.0 * &n.0 + &b) % &p;
-
-    
-    println!(
-        "{:?} y_squared",
-        y_squared
-    );
-
-    println!(
-        "{:?} x_cubed_plus_7",
-        x_cubed_plus_7
-    );
-
-    // Check if y^2 ≡ x^3 + 7 (mod p)
-    y_squared == x_cubed_plus_7
-}
+pub mod finite_fields;
+pub mod elliptic_curve;
 
 fn main() {
-    let valid_point1: (BigUint, BigUint) = (
-        BigUint::from_str_radix("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16).unwrap(),
-        BigUint::from_str_radix("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16).unwrap(),
-    );
+
+    let p = BigUint::parse_bytes(
+        b"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
+        16,
+    )
+    .expect("could not convert p");
+
+    let n = BigUint::parse_bytes(
+        b"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+        16,
+    )
+    .expect("could not convert n");
+
+    let gx = BigUint::parse_bytes(
+        b"79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+        16,
+    )
+    .expect("could not convert gx");
+    
+    let gy = BigUint::parse_bytes(
+        b"483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
+        16,
+    )
+    .expect("could not convert gy");
+
+    let ec = EllipticCurve {
+        a: BigUint::from(0u32),
+        b: BigUint::from(7u32),
+        p,
+    };
+    
+    let g = Point::Coor(gx, gy);
 
 
-    let invalid_point1: (BigUint, BigUint) = (
-        BigUint::from_str_radix("0000000000000000000000000000000000000000000000000000000000000000", 16).unwrap(),
-        BigUint::from_str_radix("0000000000000000000000000000000000000000000000000000000000000000", 16).unwrap(),
-    );
+    let is_true =ec.is_on_curve(&g);
 
-    let invalid_point2: (BigUint, BigUint) = (
-        BigUint::from_str_radix("2a7b3eeb7b01c3ce1455c88a0043ae814d66b50bb7239c3deada84eb3cb5986a", 16).unwrap(),
-        BigUint::from_str_radix("0000000000000000000000000000000000000000000000000000000000000000", 16).unwrap(),
-    );
+    println!("Valid Point: {}", is_true); // true
 
-    println!("Valid Point 1: {}", is_on_secp256k1_curve(valid_point1)); // true
-    println!("Invalid Point 1: {}", is_on_secp256k1_curve(invalid_point1)); // false
-    println!("Invalid Point 2: {}", is_on_secp256k1_curve(invalid_point2)); // false
 }
