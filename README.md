@@ -1,1 +1,1 @@
-# rust-sepc265k1-CLI
+# rust-sepc265k1
